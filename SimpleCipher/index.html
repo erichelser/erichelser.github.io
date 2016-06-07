@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>SimpleCipher Text Decryption/Encryption</h1>
+
+1. ASCII Binary to Text
+2. Reverse word order
+3. Reverse contents
+4. Caesarian cipher
+<table><tr><td>
+	<table>
+	<tr>
+		<td colspan=2>
+			Binary Input:<br>
+			<textarea id="decodeIn" rows="10" cols="80"></textarea>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Shift: <input type=text id=N value="">
+		</td>
+		<td>
+			<button type="button" onclick="decode()">Decrypt</button>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2>
+			Text Output:<br>
+			<textarea id="decodeOut" rows="4" cols="80"></textarea>
+		</td>
+	</tr>
+	</table>
+</td><td>
+	<table>
+	<tr>
+		<td colspan=2>
+			Text Input:<br>
+			<textarea id="textIn" rows="4" cols="80"></textarea>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Shift: <input type=text id=M value="">
+		</td>
+		<td>
+			<button type="button" onclick="encode()">Encrypt</button>
+		</td>
+	</tr>
+	<tr>
+		<td colspan=2>
+			Binary Output:<br>
+			<textarea id="textOut" rows="10" cols="80"></textarea>
+		</td>
+	</tr>
+	</table>
+</td></tr></table>
+
+<script>
+function encode()
+{
+	//get data from fields
+	var input=document.getElementById("textIn").value;
+	var N=document.getElementById("M").value;
+	var output=document.getElementById("textOut");
+	//perform caesarian cipher where N = shift variable, default 0
+	var shift=parseInt(N);
+	if(isNaN(shift))
+		shift=0;
+	textData=letterShift(input,shift);
+	//reverse order of each individual character
+	textData=reverseString(textData);
+	//reverse order of non-whitespace segments
+	textData=reverseWords(textData);
+	//then convert decimal to ASCII character
+	var decimalData=[];
+	for(var i=0; i<textData.length; i++)
+		decimalData[decimalData.length]=textData.charCodeAt(i);
+	for(var i=0; i<decimalData.length; i++)
+		decimalData[i]=""+decimalToBinary(decimalData[i]);
+	//build groups of 8
+	var textData="";
+	for(var i=0; i<decimalData.length; i++)
+	{
+		textData+=decimalData[i];
+		if(i<decimalData.length-1)
+			textData+=" ";
+	}
+	//display output
+	output.value=textData;
+}
+function decode()
+{
+	//get data from fields
+	var input=document.getElementById("decodeIn").value;
+	var N=document.getElementById("N").value;
+	var output=document.getElementById("decodeOut");
+	//local variable definition
+	var binaryData=[];
+	var buffer="";
+	//extract only 1's and 0's from input text and break into groups of 8
+	for(var i=0; i<input.length; i++)
+	{
+		if(input.charAt(i)=='0' || input.charAt(i)=='1')
+			buffer+=input.charAt(i);
+		if(buffer.length==8)
+		{
+			binaryData[binaryData.length]=buffer;
+			buffer="";
+		}
+	}
+	//build string from array of octets
+	//convert binary to decimal first
+	var textData="";
+	for(var i=0; i<binaryData.length; i++)
+		binaryData[i]=binaryToDecimal(binaryData[i]);
+	//then convert decimal to ASCII character
+	for(var i=0; i<binaryData.length; i++)
+		textData+=String.fromCharCode(binaryData[i]);
+	//reverse order of non-whitespace segments
+	textData=reverseWords(textData);
+	//reverse order of each individual character
+	textData=reverseString(textData);
+	//perform caesarian cipher where N = shift variable, default 0
+	var shift=parseInt(N);
+	if(isNaN(shift))
+		shift=0;
+	textData=letterShift(textData,shift);
+	//display output
+	output.value=textData;
+}
+function binaryToDecimal(binaryIn)
+{
+	var ret=0;
+	var mult=1;
+	for(var i=0; i<binaryIn.length; i++)
+	{
+		var ch=binaryIn.charAt(binaryIn.length-1-i);
+		if(ch=='1')
+			ret+=mult;
+		mult*=2;
+	}
+	return ret;
+}
+function decimalToBinary(numIn)
+{
+	var ret="";
+	for(var i=0; i<8; i++)
+	{
+		if(numIn%2==1)
+		{
+			ret="1"+ret;
+			numIn--;
+		}
+		else
+			ret="0"+ret;
+		numIn/=2;
+	}
+	return ret;
+}
+function reverseWords(stringIn)
+{
+	var words=stringIn.split(" ");
+	var ret="";
+	for(var i=words.length-1; i>=0; i--)
+	{
+		ret+=words[i];
+		if(i>0)
+			ret+=" ";
+	}
+	return ret;
+}
+function reverseString(stringIn)
+{
+	var ret="";
+	for(var i=stringIn.length-1; i>=0; i--)
+		ret+=stringIn.charAt(i);
+	return ret;
+}
+function letterShift(stringIn,step)
+{
+	var ret="";
+	for(var i=0; i<stringIn.length; i++)
+	{
+		var ch=stringIn.charAt(i);
+		if('a'<=ch && ch<='z')
+			ret+=String.fromCharCode((((ch.charCodeAt(0)-0x61)+step+2600)%26)+0x61);
+		else if('A'<=ch && ch<='Z')
+			ret+=String.fromCharCode((((ch.charCodeAt(0)-0x41)+step+2600)%26)+0x41);
+		else
+			ret+=ch;
+	}
+	return ret;
+}
+</script>
+
+<p>
+<a href=http://github.com/erichelser/SimpleCipher>hosted on GitHub</a>
+</body>
+</html> 
